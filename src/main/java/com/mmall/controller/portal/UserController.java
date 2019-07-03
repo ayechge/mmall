@@ -37,6 +37,8 @@ public class UserController {
     public ServerResponse<User> login(String username, String password, HttpSession session) {
         ServerResponse<User> response = iUserService.login(username, password);
         if (response.isSuccess()) {
+            //在这条语句之前,session保存着上一个登陆的信息
+            //由于每次的key都是currentUser，所以新用户登录时，上一个用户的信息就被覆盖了
             session.setAttribute(Const.CURRENT_USER, response.getData());
 
         }
@@ -44,7 +46,7 @@ public class UserController {
     }
 
     /**
-     * 登出接口
+     * 退出登录
      *
      * @param session
      * @return
@@ -53,7 +55,7 @@ public class UserController {
     @ResponseBody
     public ServerResponse<String> logout(HttpSession session) {
         session.removeAttribute(Const.CURRENT_USER);
-        return ServerResponse.createBySuccess();
+        return ServerResponse.createBySuccessMessage("退出成功");
     }
 
     /**
@@ -178,7 +180,7 @@ public class UserController {
         user.setUsername(currentUser.getUsername());
         ServerResponse<User> response = iUserService.updateInformation(user);
         if (response.isSuccess()) {
-            //为什么只用response.getData()? data中的字段不全
+            response.getData().setUsername(currentUser.getUsername());
             session.setAttribute(Const.CURRENT_USER, response.getData());
         }
         return response;
